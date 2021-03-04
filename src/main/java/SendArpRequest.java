@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -24,20 +25,39 @@ public class SendArpRequest {
     private static final int COUNT = Integer.getInteger(COUNT_KEY, 1);
 
     private static final String READ_TIMEOUT_KEY = SendArpRequest.class.getName() + ".readTimeout";
-    private static final int READ_TIMEOUT = Integer.getInteger(READ_TIMEOUT_KEY, 10); // [ms]
+    private static final int READ_TIMEOUT = Integer.getInteger(READ_TIMEOUT_KEY, 100); // [ms]
 
     private static final String SNAPLEN_KEY = SendArpRequest.class.getName() + ".snaplen";
     private static final int SNAPLEN = Integer.getInteger(SNAPLEN_KEY, 65536); // [bytes]
 
     private static final MacAddress SRC_MAC_ADDR = MacAddress.getByName("dc:e9:94:28:f8:eb");
+    static final String strSrcIpAddress = "192.168.0.161";
 
     private static MacAddress resolvedAddr;
 
-    private SendArpRequest() {}
+    private SendArpRequest() {
+    }
 
-    public static void main(String[] args) throws PcapNativeException, NotOpenException {
-        String strSrcIpAddress = "192.168.0.1"; // for InetAddress.getByName()
-        String strDstIpAddress = "192.168.0.199"; // for InetAddress.getByName()
+    public static void main(String[] args) throws InterruptedException, PcapNativeException, NotOpenException {
+
+        Scanner in = new Scanner(System.in);
+        System.out.println("Input 1 send ARP request to other IP");
+        System.out.println("Input 2 to detect device with same IP");
+
+        System.out.print("Input a command: ");
+        int num = in.nextInt();
+        String strDstIpAddress = strSrcIpAddress;
+
+        if (num == 1) {
+            System.out.print("Input an IP: ");
+            strDstIpAddress = in.next();
+        }
+        sendARP(strDstIpAddress);
+
+    }
+
+    private static void sendARP(String strDstIpAddress) throws PcapNativeException, NotOpenException {
+        //String strDstIpAddress = "192.168.0.238"; // for InetAddress.getByName()
 
         System.out.println(COUNT_KEY + ": " + COUNT);
         System.out.println(READ_TIMEOUT_KEY + ": " + READ_TIMEOUT);
@@ -124,6 +144,9 @@ public class SendArpRequest {
                 }
             }
         } finally {
+            if (resolvedAddr == null) {
+                System.out.println("No such address found");
+            }
             if (handle != null && handle.isOpen()) {
                 handle.close();
             }

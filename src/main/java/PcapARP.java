@@ -8,19 +8,26 @@ import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
 
 public class PcapARP {
-    public static void main(String args[]) throws UnknownHostException, PcapNativeException, EOFException, TimeoutException, NotOpenException {
-        InetAddress addr = InetAddress.getByName("192.168.0.161");
-        PcapNetworkInterface nif = Pcaps.getDevByAddress(addr);
-        int snapLen = 65536;
-        PcapNetworkInterface.PromiscuousMode mode = PcapNetworkInterface.PromiscuousMode.PROMISCUOUS;
-        int timeout = 10000;
-        PcapHandle handle = nif.openLive(snapLen, mode, timeout);
-        while (true) {
-            Packet packet = handle.getNextPacketEx();
-            ArpPacket arpPacket = packet.get(ArpPacket.class);
-            if (arpPacket != null) {
-                System.out.println(arpPacket);
+
+    public static void main(String[] args) {
+
+        try {
+            InetAddress addr = InetAddress.getByName(SendArpRequest.strSrcIpAddress);
+            PcapNetworkInterface nif = Pcaps.getDevByAddress(addr);
+            int snapLen = 65536;
+            PcapNetworkInterface.PromiscuousMode mode = PcapNetworkInterface.PromiscuousMode.PROMISCUOUS;
+            int timeout = 10000;
+            PcapHandle handle = nif.openLive(snapLen, mode, timeout);
+            while (true) {
+                    Packet packet = handle.getNextPacketEx();
+                    ArpPacket arpPacket = packet.get(ArpPacket.class);
+                    if (arpPacket != null) {
+                        System.out.println(arpPacket);
+                }
             }
+        }
+        catch (Exception e){
+            System.out.println("Error to start thread");
         }
     }
 }
